@@ -58,6 +58,9 @@ La [collection Postman](postman/ImmoKer-auth.postman_collection.json) permet
 d'enchainer les requetes manuellement.
 Voir aussi la [liste des fichiers de cette implementation](docs/AUTH_FILES.md).
 
+La [documentation Swagger / OpenAPI](docs/OPENAPI.md) indique les URLs,
+la compatibilite springdoc et le parcours JWT a effectuer en fin de projet.
+
 ## Persistance et verification
 
 Les migrations Flyway se trouvent dans `src/main/resources/db/migration`.
