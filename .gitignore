@@ -18,7 +18,7 @@ target/
 *.iws
 *.iml
 *.ipr
-
+/docs
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -31,3 +31,64 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+# =========================
+# Habiterra Backend
+# =========================
+
+# Build
+target/
+*.class
+*.jar
+*.war
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Application secrets / local config
+application-local.properties
+application-local.yml
+application-local.yaml
+
+# =========================
+# AI / Codex
+# =========================
+.codex/
+.codexrc
+codex.json
+codex.yaml
+codex.yml
+
+AGENTS.md
+AGENTS.local.md
+
+.claude/
+CLAUDE.md
+.cursor/
+.cursorignore
+.aider*
+.roo/
+.roocode/
+.ai/
+*.ai.log

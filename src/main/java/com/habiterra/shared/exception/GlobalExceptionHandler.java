@@ -1,0 +1,37 @@
+package com.habiterra.shared.exception;
+import com.habiterra.identity.exception.AuthException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.*;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+    private final ApiErrorWriter errors;
+    public GlobalExceptionHandler(ApiErrorWriter errors){this.errors=errors;}
+    private ResponseEntity<ApiError> error(int s,String c,String m,HttpServletRequest r){
+        return ResponseEntity.status(s).body(errors.body(s,c,m,r.getRequestURI()));
+    }
+    @ExceptionHandler(AuthException.class)
+    ResponseEntity<ApiError> business(AuthException e,HttpServletRequest r){return error(e.getStatus(),e.getCode(),e.getMessage(),r);}
+    @ExceptionHandler(AuthenticationException.class)
+    ResponseEntity<ApiError> authentication(AuthenticationException e,HttpServletRequest r){return ResponseEntity.status(401)
+        .header("WWW-Authenticate","Bearer").body(errors.body(401,"BAD_CREDENTIALS","Identifiants incorrects",r.getRequestURI()));}
+    @ExceptionHandler(AccessDeniedException.class)
+    ResponseEntity<ApiError> denied(AccessDeniedException e,HttpServletRequest r){return error(403,"ACCESS_DENIED","Acces interdit",r);}
+    @ExceptionHandler({MethodArgumentNotValidException.class,HttpMessageNotReadableException.class})
+    ResponseEntity<ApiError> validation(Exception e,HttpServletRequest r){return error(400,"INVALID_REQUEST","Champs invalides ou role inconnu",r);}
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<ApiError> conflict(DataIntegrityViolationException e,HttpServletRequest r){return error(409,"IDENTIFIER_CONFLICT","Email ou telephone deja utilise, ou donnees incompatibles",r);}
+    @ExceptionHandler(NoResourceFoundException.class)
+    ResponseEntity<ApiError> missing(Exception e,HttpServletRequest r){return error(404,"NOT_FOUND","Ressource introuvable",r);}
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    ResponseEntity<ApiError> method(Exception e,HttpServletRequest r){return error(405,"METHOD_NOT_ALLOWED","Methode non autorisee",r);}
+    @ExceptionHandler(Exception.class)
+    ResponseEntity<ApiError> unexpected(Exception e,HttpServletRequest r){return error(500,"INTERNAL_ERROR","Erreur interne",r);}
+}
