@@ -12,6 +12,25 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(com.habiterra.property.exception.PropertyException.class)
+    ResponseEntity<ApiError> property(com.habiterra.property.exception.PropertyException e, HttpServletRequest request) {
+        return error(e.getStatus(), e.getCode(), e.getMessage(), request);
+    }
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    ResponseEntity<ApiError> uploadTooLarge(Exception e, HttpServletRequest request) {
+        return error(413, "PHOTO_TOO_LARGE", "Photo exceeds the upload size limit", request);
+    }
+    @ExceptionHandler({org.springframework.web.bind.MissingServletRequestParameterException.class,
+            org.springframework.web.multipart.support.MissingServletRequestPartException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+            jakarta.validation.ConstraintViolationException.class})
+    ResponseEntity<ApiError> invalidInput(Exception e, HttpServletRequest request) {
+        return error(400, "INVALID_REQUEST", "Invalid request parameters", request);
+    }
+    @ExceptionHandler(org.springframework.dao.PessimisticLockingFailureException.class)
+    ResponseEntity<ApiError> concurrentUpdate(Exception e, HttpServletRequest request) {
+        return error(409, "CONCURRENT_UPDATE", "Concurrent property update; retry the request", request);
+    }
     private final ApiErrorWriter errors;
     public GlobalExceptionHandler(ApiErrorWriter errors){this.errors=errors;}
     private ResponseEntity<ApiError> error(int s,String c,String m,HttpServletRequest r){

@@ -92,3 +92,5 @@ CLAUDE.md
 .roocode/
 .ai/
 *.ai.log
+# Local property photo files
+/var/property-photos/

@@ -85,6 +85,15 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(authz -> authz
 
+                        .requestMatchers(HttpMethod.GET, "/api/v1/properties/mine").authenticated()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/properties",
+                                "/api/v1/property-types",
+                                "/api/v1/property-types/{id:[0-9]+}",
+                                "/api/v1/properties/{id:[0-9]+}",
+                                "/api/v1/properties/{id:[0-9]+}/photos/files/{filename}"
+                        ).permitAll()
+
                         // Swagger
                         .requestMatchers(
                                 HttpMethod.GET,

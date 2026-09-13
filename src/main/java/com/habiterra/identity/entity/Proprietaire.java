@@ -7,6 +7,13 @@ import jakarta.persistence.*;
 @PrimaryKeyJoinColumn(name = "id_proprietaire")
 public class Proprietaire extends Utilisateur {
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "agency_id")
+    private com.habiterra.agency.entity.Agence agency;
+
+    public com.habiterra.agency.entity.Agence getAgency() { return agency; }
+    public void setAgency(com.habiterra.agency.entity.Agence agency) { this.agency = agency; }
+
     @Column(name = "numero_identite")
     private String numeroIdentite;
 
@@ -46,4 +53,3 @@ public class Proprietaire extends Utilisateur {
 
 
 }
-

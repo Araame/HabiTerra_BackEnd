@@ -53,9 +53,9 @@ Le module `identity` implemente le parcours OTP, inscription et authentification
 JWT. Les autres modules metier restent a developper.
 
 Le [guide d'authentification](docs/AUTHENTIFICATION.md) detaille les endpoints,
-les variables d'environnement, les fournisseurs email/SMS et le parcours Postman.
-La [collection Postman](postman/ImmoKer-auth.postman_collection.json) permet
-d'enchainer les requetes manuellement.
+les variables d'environnement, les fournisseurs email/SMS et le parcours Swagger.
+Le [guide de soutenance](docs/SOUTENANCE_BIENS_FILTRES_PAGINATION.md) propose
+les questions, reponses et concepts sur les biens, les filtres et la pagination.
 Voir aussi la [liste des fichiers de cette implementation](docs/AUTH_FILES.md).
 
 La [documentation Swagger / OpenAPI](docs/OPENAPI.md) indique les URLs,
