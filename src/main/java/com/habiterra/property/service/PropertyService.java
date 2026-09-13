@@ -130,13 +130,17 @@ public class PropertyService {
 
     //
     public Page<PropertyResponse> getPublicProperties(@Valid PropertyFilterRequest filters, Pageable pageable) {
+        //Validate the filters
         filters.validateRanges();
+        //Return properties according to sent filters
         return properties.findAll(PropertySpecifications.availableWithFilters(filters), pagination(pageable))
+                //Transform entity into DTO (PropertyResponse)
                 .map(mapper::toResponse);
     }
-
+//Retrieving private properties of the connected user
     public Page<PropertyResponse> getManagedProperties(Authentication authentication, Pageable pageable) {
         Utilisateur user = authorization.currentUser(authentication);
+        //Verify if connected user can manage asked properties
         authorization.requireManager(user);
         Pageable page = pagination(pageable);
         return (user.getRole() == Role.PROPRIETAIRE
@@ -145,11 +149,16 @@ public class PropertyService {
     }
 
     private Pageable pagination(Pageable pageable) {
+        //Handle invalid sort fields
         for (Sort.Order order : pageable.getSort())
             if (!SORT_FIELDS.contains(order.getProperty()))
                 throw new PropertyException(400, "INVALID_SORT", "Unsupported property sort field");
+        //Default sort by dateCreation if any sort field is put
         Sort sort = pageable.getSort().isSorted() ? pageable.getSort() : Sort.by(Sort.Direction.DESC, "dateCreation");
-        if (sort.getOrderFor("id") == null) sort = sort.and(Sort.by("id"));
+        //Sort by id
+        if (sort.getOrderFor("id") == null)
+            sort = sort.and(Sort.by("id"));
+        //Return new page with specific infos of asked properties by filters
         return PageRequest.of(pageable.getPageNumber(), Math.min(pageable.getPageSize(), 100), sort);
     }
 

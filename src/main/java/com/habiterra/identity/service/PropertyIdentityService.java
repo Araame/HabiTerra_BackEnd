@@ -12,7 +12,7 @@ import java.util.Optional;
 public class PropertyIdentityService {
     private final UtilisateurRepository users;
     public PropertyIdentityService(UtilisateurRepository users) { this.users = users; }
-
+//Check if a user is a prop
     public Optional<Proprietaire> findOwner(Long id) {
         return users.findById(id).filter(Proprietaire.class::isInstance).map(Proprietaire.class::cast);
     }

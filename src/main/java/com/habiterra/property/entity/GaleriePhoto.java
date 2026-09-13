@@ -16,10 +16,18 @@ public class GaleriePhoto {
     @OrderBy("id ASC")
     private java.util.List<PhotoBien> photos = new java.util.ArrayList<>();
 
-    public java.util.List<PhotoBien> getPhotos() { return photos; }
+    public java.util.List<PhotoBien> getPhotos() {
+        return photos;
+    }
 
-    public Long getId() { return id; }
-    public String getTitre() { return titre; }
-    public void setTitre(String value) { this.titre = value; }
+    public Long getId() {
+        return id;
+    }
+    public String getTitre() {
+        return titre;
+    }
+    public void setTitre(String value) {
+        this.titre = value;
+    }
 }
 
