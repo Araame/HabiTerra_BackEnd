@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import java.util.Locale;
 @Service
 public class IdentifierService {
+
     public record Identifier(String value, IdentifierType type) {}
+//    Normalize the identifier (clean it)
     public Identifier normalize(String input) {
         if (input == null || input.isBlank() || input.length() > 150) throw invalid();
         String value = input.strip();
@@ -20,11 +22,18 @@ public class IdentifierService {
         if (!value.matches("\\+[1-9][0-9]{7,14}")) throw invalid();
         return new Identifier(value, IdentifierType.TELEPHONE);
     }
+
+
+//    Optional input during the registration according to the role
     public String optional(String input, IdentifierType expected) {
         if (input == null || input.isBlank()) return null;
         Identifier id = normalize(input);
         if (id.type()!=expected) throw invalid();
         return id.value();
     }
-    private AuthException invalid() { return new AuthException(400,"INVALID_IDENTIFIER","Email ou telephone international invalide"); }
+
+//    Invalid identifier method
+    private AuthException invalid() {
+        return new AuthException(400,"INVALID_IDENTIFIER","Email ou telephone international invalide");
+    }
 }

@@ -12,9 +12,15 @@ import java.io.IOException;
 import java.util.List;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final JwtService tokens;private final AuthService auth;private final ApiErrorWriter errors;private final AuthRateLimiter limiter;
+    private final JwtService tokens;
+    private final AuthService auth;
+    private final ApiErrorWriter errors;
+    private final AuthRateLimiter limiter;
     public JwtAuthenticationFilter(JwtService tokens,AuthService auth,ApiErrorWriter errors,AuthRateLimiter limiter){
-        this.tokens=tokens;this.auth=auth;this.errors=errors;this.limiter=limiter;
+        this.tokens=tokens;
+        this.auth=auth;
+        this.errors=errors;
+        this.limiter=limiter;
     }
     @Override protected void doFilterInternal(HttpServletRequest req,HttpServletResponse res,FilterChain chain)throws ServletException,IOException {
         try{

@@ -5,7 +5,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class IdentifierLock {
     private final EntityManager entityManager;
-    public IdentifierLock(EntityManager entityManager) { this.entityManager=entityManager; }
+    public IdentifierLock(EntityManager entityManager) {
+        this.entityManager=entityManager;
+    }
     public void acquire(String identifier) {
         entityManager.createNativeQuery("select 1 from pg_advisory_xact_lock(hashtextextended(:identifier, 0))")
             .setParameter("identifier", identifier).getSingleResult();

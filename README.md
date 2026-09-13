@@ -77,3 +77,7 @@ La migration V2 aligne le schema historique avec les entites et ajoute les OTP.
 Les secrets PostgreSQL et JWT doivent etre fournis par l'environnement.
 Aucun test ajoute ou execute pour cette implementation. Le test initial
 `contextLoads` est conserve ; son execution necessiterait PostgreSQL et les secrets.
+
+## Documentation technique
+
+- [Authentification et sécurité](docs/authentification/README.md)
