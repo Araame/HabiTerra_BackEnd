@@ -12,6 +12,10 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(com.habiterra.application.exception.ApplicationException.class)
+    ResponseEntity<ApiError> application(com.habiterra.application.exception.ApplicationException e, HttpServletRequest request) {
+        return error(e.getStatus(), e.getCode(), e.getMessage(), request);
+    }
     @ExceptionHandler(com.habiterra.property.exception.PropertyException.class)
     ResponseEntity<ApiError> property(com.habiterra.property.exception.PropertyException e, HttpServletRequest request) {
         return error(e.getStatus(), e.getCode(), e.getMessage(), request);
@@ -29,7 +33,7 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(org.springframework.dao.PessimisticLockingFailureException.class)
     ResponseEntity<ApiError> concurrentUpdate(Exception e, HttpServletRequest request) {
-        return error(409, "CONCURRENT_UPDATE", "Concurrent property update; retry the request", request);
+        return error(409, "CONCURRENT_UPDATE", "Concurrent update; retry the request", request);
     }
     private final ApiErrorWriter errors;
     public GlobalExceptionHandler(ApiErrorWriter errors){this.errors=errors;}
@@ -46,7 +50,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class,HttpMessageNotReadableException.class})
     ResponseEntity<ApiError> validation(Exception e,HttpServletRequest r){return error(400,"INVALID_REQUEST","Champs invalides ou role inconnu",r);}
     @ExceptionHandler(DataIntegrityViolationException.class)
-    ResponseEntity<ApiError> conflict(DataIntegrityViolationException e,HttpServletRequest r){return error(409,"IDENTIFIER_CONFLICT","Email ou telephone deja utilise, ou donnees incompatibles",r);}
+    ResponseEntity<ApiError> conflict(DataIntegrityViolationException e,HttpServletRequest r){
+        for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+            if (cause instanceof org.hibernate.exception.ConstraintViolationException violation
+                    && "uk_candidature_locataire_bien".equals(violation.getConstraintName()))
+                return error(409, "DUPLICATE_APPLICATION", "You have already applied for this property", r);
+        }
+        return error(409,"IDENTIFIER_CONFLICT","Email ou telephone deja utilise, ou donnees incompatibles",r);
+    }
     @ExceptionHandler(NoResourceFoundException.class)
     ResponseEntity<ApiError> missing(Exception e,HttpServletRequest r){return error(404,"NOT_FOUND","Ressource introuvable",r);}
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
