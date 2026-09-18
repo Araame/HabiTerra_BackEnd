@@ -9,10 +9,10 @@ import java.util.Optional;
 
 // Application repositrory
 public interface ApplicationRepository extends JpaRepository<Candidature, Long> {
-    boolean existsByLocataireIdUtilisateurAndBienImmobilierId(Long tenantId, Long propertyId);
+    boolean existsByLocataireIdAndBienImmobilierId(Long tenantId, Long propertyId);
 
     @EntityGraph(attributePaths = {"locataire", "bienImmobilier"})
-    Page<Candidature> findByLocataireIdUtilisateur(Long tenantId, Pageable pageable);
+    Page<Candidature> findByLocataireId(Long tenantId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"locataire", "bienImmobilier"})
     Page<Candidature> findByBienImmobilierId(Long propertyId, Pageable pageable);

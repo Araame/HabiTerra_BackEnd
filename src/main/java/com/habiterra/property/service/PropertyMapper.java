@@ -35,7 +35,7 @@ public class PropertyMapper {
                         room.getSuperficie(), room.getDescription())).toList(),
                 new GalleryResponse(gallery.getId(), gallery.getTitre(),
                         gallery.getPhotos().stream().map(this::toPhotoResponse).toList()),
-                new OwnerSummaryResponse(owner.getIdUtilisateur(), owner.getPrenom() + " " + owner.getNom(), owner.getRole()),
+                new OwnerSummaryResponse(owner.getId(), owner.getPrenom() + " " + owner.getNom(), com.habiterra.identity.entity.Role.PROPRIETAIRE),
                 agency == null ? null : new AgencySummaryResponse(agency.getId()));
     }
 

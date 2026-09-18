@@ -123,7 +123,7 @@ public class PropertyService {
     //Retrieve readable properties
     private BienImmobilier readable(Long id, Authentication authentication) {
         BienImmobilier property = find(id);
-        if (property.getStatut() != StatutBien.AVAILABLE && !authorization.canManage(authorization.optionalUser(authentication), property))
+        if (property.getStatut() != StatutBien.AVAILABLE && !authorization.canRead(authorization.optionalUser(authentication), property))
             throw notFound();
         return property;
     }
@@ -144,7 +144,7 @@ public class PropertyService {
         authorization.requireManager(user);
         Pageable page = pagination(pageable);
         return (user.getRole() == Role.PROPRIETAIRE
-                ? properties.findByOwnerIdUtilisateur(user.getIdUtilisateur(), page)
+                ? properties.findByOwnerId(authorization.associatedOwner(user).getId(), page)
                 : properties.findByOwnerAgencyId(authorization.agencyId(user), page)).map(mapper::toResponse);
     }
 

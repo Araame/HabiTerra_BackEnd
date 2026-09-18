@@ -13,7 +13,7 @@ public interface PropertyRepository extends JpaRepository<BienImmobilier, Long>,
     Page<BienImmobilier> findAll(org.springframework.data.jpa.domain.Specification<BienImmobilier> specification, Pageable pageable);
 
     @EntityGraph(attributePaths = {"owner", "agency", "type", "address", "gallery"})
-    Page<BienImmobilier> findByOwnerIdUtilisateur(Long ownerId, Pageable pageable);
+    Page<BienImmobilier> findByOwnerId(Long ownerId, Pageable pageable);
 
     @EntityGraph(attributePaths = {"owner", "owner.agency", "agency", "type", "address", "gallery"})
     Page<BienImmobilier> findByOwnerAgencyId(Long agencyId, Pageable pageable);

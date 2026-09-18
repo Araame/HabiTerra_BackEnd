@@ -13,6 +13,7 @@ import java.util.Objects;
         name = "uk_candidature_locataire_bien", columnNames = {"locataire_id", "bien_immobilier_id"}))
 
 public class Candidature {
+    protected Candidature() {}
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 

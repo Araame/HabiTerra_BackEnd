@@ -28,9 +28,12 @@ public class ApplicationService {
     private final PropertyRepository properties;
     private final PropertyAuthorizationService authorization;
     private final Clock clock;
+    private final com.habiterra.identity.repository.LocataireRepository tenants;
 
     public ApplicationService(ApplicationRepository applications, PropertyRepository properties,
-            PropertyAuthorizationService authorization, Clock clock) {
+            PropertyAuthorizationService authorization, Clock clock,
+            com.habiterra.identity.repository.LocataireRepository tenants) {
+        this.tenants = tenants;
         this.applications = applications;
         this.properties = properties;
         this.authorization = authorization;
@@ -44,7 +47,7 @@ public class ApplicationService {
         // Use the same lock as property publication to keep availability stable until insertion.
         BienImmobilier property = properties.findForUpdate(request.propertyId()).orElseThrow(this::propertyNotFound);
 
-        if (applications.existsByLocataireIdUtilisateurAndBienImmobilierId(tenant.getIdUtilisateur(), property.getId()))
+        if (applications.existsByLocataireIdAndBienImmobilierId(tenant.getId(), property.getId()))
             throw new ApplicationException(409, "DUPLICATE_APPLICATION", "You have already applied for this property");
         if (property.getStatut() != StatutBien.AVAILABLE)
             throw new ApplicationException(409, "PROPERTY_NOT_AVAILABLE", "Only available properties accept applications");
@@ -56,7 +59,7 @@ public class ApplicationService {
     // Getting connected user applications pages
     public Page<ApplicationResponse> getMyApplications(Authentication authentication, Pageable pageable) {
         Locataire tenant = currentTenant(authentication);
-        return applications.findByLocataireIdUtilisateur(tenant.getIdUtilisateur(), pagination(pageable))
+        return applications.findByLocataireId(tenant.getId(), pagination(pageable))
                 .map(this::toResponse);
     }
 
@@ -108,7 +111,7 @@ public class ApplicationService {
     public ApplicationResponse cancelApplication(Long id, Authentication authentication) {
         Locataire tenant = currentTenant(authentication);
         Candidature application = applications.findForUpdate(id).orElseThrow(this::notFound);
-        if (!isApplicant(tenant, application)) throw accessDenied();
+        if (!Objects.equals(tenant.getId(), application.getLocataire().getId())) throw accessDenied();
         application.cancel();
         return toResponse(application);
     }
@@ -124,14 +127,15 @@ public class ApplicationService {
     // Getting connected user
     private Locataire currentTenant(Authentication authentication) {
         Utilisateur user = authorization.currentUser(authentication);
-        if (user.getRole() != Role.LOCATAIRE || !(user instanceof Locataire tenant))
+        if (user.getRole() != Role.LOCATAIRE)
             throw new ApplicationException(403, "APPLICATION_ACCESS_DENIED", "Only tenants can perform this action");
-        return tenant;
+        return tenants.findByUtilisateurIdUtilisateur(user.getIdUtilisateur()).orElseThrow(() ->
+                new ApplicationException(403, "TENANT_PROFILE_NOT_FOUND", "Tenant profile unavailable"));
     }
 
     private boolean isApplicant(Utilisateur user, Candidature application) {
-        return user.getRole() == Role.LOCATAIRE && user instanceof Locataire
-                && Objects.equals(user.getIdUtilisateur(), application.getLocataire().getIdUtilisateur());
+        return user.getRole() == Role.LOCATAIRE && application.getLocataire().getUtilisateur() != null
+                && Objects.equals(user.getIdUtilisateur(), application.getLocataire().getUtilisateur().getIdUtilisateur());
     }
 
     // Personnalized pagination for application
@@ -149,7 +153,7 @@ public class ApplicationService {
         Locataire tenant = application.getLocataire();
         return new ApplicationResponse(application.getId(), application.getStatut(), application.getDateCandidature(),
                 new PropertySummaryResponse(property.getId(), property.getTitre()),
-                new TenantSummaryResponse(tenant.getIdUtilisateur(), tenant.getPrenom(), tenant.getNom()));
+                new TenantSummaryResponse(tenant.getId(), tenant.getPrenom(), tenant.getNom()));
     }
 
     // Application not found exception

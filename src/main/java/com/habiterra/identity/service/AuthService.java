@@ -19,6 +19,8 @@ public class AuthService {
 
     // USERS TABLE ACCESS
     private final UtilisateurRepository users;
+    private final ProprietaireRepository owners;
+    private final LocataireRepository tenants;
     // OTP ACCESS
     private final OtpVerificationRepository otps;
     // HANDLE THE LOGIN IDENTIFIERS (If it is by email or phone number)
@@ -36,7 +38,9 @@ public class AuthService {
 
 
     public AuthService(UtilisateurRepository users,OtpVerificationRepository otps,IdentifierService identifiers,
-            IdentifierLock lock,JwtService tokens,PasswordEncoder encoder,AuthenticationManager authentication,Clock clock){
+            IdentifierLock lock,JwtService tokens,PasswordEncoder encoder,AuthenticationManager authentication,Clock clock,
+            ProprietaireRepository owners, LocataireRepository tenants){
+        this.owners=owners; this.tenants=tenants;
         this.users=users;this.otps=otps;
         this.identifiers=identifiers;
         this.lock=lock;
@@ -107,16 +111,12 @@ public class AuthService {
             case LOCATAIRE -> {
                 required(r.profession(),"PROFESSION_REQUIRED","Profession obligatoire");
                 reject(r.poste(),"POSTE_NOT_ALLOWED");
-                Locataire profile=new Locataire();
-                profile.setProfession(r.profession().strip());
-                user=profile;
+                user=new Utilisateur();
             }
             case PROPRIETAIRE -> {
                 required(r.profession(),"PROFESSION_REQUIRED","Profession obligatoire");
                 reject(r.poste(),"POSTE_NOT_ALLOWED");
-                Proprietaire profile=new Proprietaire();
-                profile.setProfession(r.profession().strip());
-                user=profile;
+                user=new Utilisateur();
             }
             case GERANT_AGENCE -> {
                 required(r.poste(),"POSTE_REQUIRED","Poste obligatoire");
@@ -138,9 +138,27 @@ public class AuthService {
         user.setTelephoneVerifie(type==IdentifierType.TELEPHONE);
         user.setDateCreation(LocalDateTime.now(clock));
         user.setDerniereConnexion(LocalDateTime.now(clock));
-        // JOINED inheritance inserts the common row and specialized row atomically.
-//        Immediatly save the user in the BD
+        // Account, business profile and OTP consumption share this transaction.
         users.saveAndFlush(user);
+        if (user.getRole() == Role.PROPRIETAIRE) {
+            Proprietaire profile = new Proprietaire();
+            profile.setPrenom(user.getPrenom());
+            profile.setNom(user.getNom());
+            profile.setEmail(user.getEmail());
+            profile.setTelephone(user.getTelephone());
+            profile.setProfession(r.profession().strip());
+            profile.setUtilisateur(user);
+            owners.saveAndFlush(profile);
+        } else if (user.getRole() == Role.LOCATAIRE) {
+            Locataire profile = new Locataire();
+            profile.setPrenom(user.getPrenom());
+            profile.setNom(user.getNom());
+            profile.setEmail(user.getEmail());
+            profile.setTelephone(user.getTelephone());
+            profile.setProfession(r.profession().strip());
+            profile.setUtilisateur(user);
+            tenants.saveAndFlush(profile);
+        }
 //        OTP is invalide after the transaction
         otp.setInvalidated(true); // consumes the registration grant in the same transaction
         return response(user);
@@ -210,8 +228,18 @@ public class AuthService {
 //    Centralise the userdetails infos to send after authentication
     private UserResponse userResponse(Utilisateur u){
         return new UserResponse(u.getIdUtilisateur(),u.getPrenom(),u.getNom(),u.getEmail(),u.getTelephone(),u.getRole(),u.getPhotoProfil(),
-            u instanceof Locataire l?l.getProfession():u instanceof Proprietaire p?p.getProfession():null,
+            profession(u),
             u instanceof GerantAgence g?g.getPoste():null);
+    }
+
+    private String profession(Utilisateur user) {
+        return switch (user.getRole()) {
+            case LOCATAIRE -> tenants.findByUtilisateurIdUtilisateur(user.getIdUtilisateur())
+                    .map(Locataire::getProfession).orElse(null);
+            case PROPRIETAIRE -> owners.findByUtilisateurIdUtilisateur(user.getIdUtilisateur())
+                    .map(Proprietaire::getProfession).orElse(null);
+            default -> null;
+        };
     }
 
 //    Valid the user profile registration according to the role by saying that a label is required
